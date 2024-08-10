@@ -1,7 +1,7 @@
 import pygame
 import Variables
 
-screen = pygame.display.set_mode((Variables.ANCHOPANTALLA, Variables.ALTOPANTALLA))
+screen = pygame.display.set_mode((832, 512))
 
 pygame.display.set_caption("Jueguito Endless")
 
@@ -19,19 +19,19 @@ class MainMenu:
     def __init__(self, mouse_pos):
         self.mouse_pos = mouse_pos
         # Mostrando opciones del menú
-        self.play_txt = draw_txt("JUGAR", Variables.text_options, Variables.txt_color_play, Variables.ANCHOPANTALLA // 2, Variables.txt_ops_y)
-        self.quit_txt = draw_txt("SALIR", Variables.text_options, Variables.text_color, (Variables.ANCHOPANTALLA // 5) * 4 + 50, Variables.txt_ops_y)
+        self.play_txt = draw_txt("JUGAR", Variables.text_options, Variables.txt_color_play, 832 // 2, 512 // 2)
+        self.quit_txt = draw_txt("SALIR", Variables.text_options, Variables.text_color, (832 // 5) * 4 + 50, 512 // 2)
 
     def menu(self):
         # Mostrando la superficie superpuesta y el portal
         # Mostrando texto principal del menu
-        draw_txt("Menú Principal", Variables.text_titles, Variables.text_color, Variables.ANCHOPANTALLA // 2, Variables.ALTOPANTALLA // 8)
+        draw_txt("Menú Principal", Variables.text_titles, Variables.text_color, 832 // 2, 512 // 8)
 
         # Cambiando de color los textos de las opciones ante un evento de colisión con mouse position
         if self.play_txt.collidepoint(self.mouse_pos):
-            draw_txt("JUGAR", Variables.text_options, Variables.txt_color_colission, Variables.ANCHOPANTALLA // 2, Variables.txt_ops_y)
+            draw_txt("JUGAR", Variables.text_options, Variables.txt_color_colission, 832 // 2, 512 // 2)
         elif self.quit_txt.collidepoint(self.mouse_pos):
-            draw_txt("SALIR", Variables.text_options, Variables.txt_color_colission, (Variables.ANCHOPANTALLA // 5) * 4 + 50, Variables.txt_ops_y)
+            draw_txt("SALIR", Variables.text_options, Variables.txt_color_colission, (832 // 5) * 4 + 50, 512 // 2)
 
     def update(self, mouse_pos):
         self.__init__(mouse_pos)
@@ -42,32 +42,31 @@ class MainMenu:
 class PauseMenu:
     def __init__(self, mouse_pos):
         self.mouse_pos = mouse_pos
-        self.quit_txt = draw_txt("SALIR AL MENÚ", Variables.text_options, Variables.text_color, Variables.ANCHOPANTALLA // 2, Variables.ALTOPANTALLA // 2 + 55)
+        self.quit_txt = draw_txt("SALIR AL MENÚ", Variables.text_options, Variables.text_color, 832 // 2, 512 // 2 + 55)
 
     def menu(self):
-        draw_txt("PRESIONA 'ESC' PARA REANUDAR", Variables.text_options, Variables.text_color, Variables.ANCHOPANTALLA // 2,Variables.ALTOPANTALLA // 4)
+        draw_txt("PRESIONA 'ESC' PARA REANUDAR", Variables.text_options, Variables.text_color, 832 // 2, 512 // 4)
 
         if self.quit_txt.collidepoint(self.mouse_pos):
-            draw_txt("SALIR AL MENÚ", Variables.text_options, Variables.txt_color_colission,Variables.ANCHOPANTALLA // 2, Variables.ALTOPANTALLA // 2 + 55)
+            draw_txt("SALIR AL MENÚ", Variables.text_options, Variables.txt_color_colission, 832 // 2, 512 // 2 + 55)
 
     def update(self, mouse_pos):
         self.__init__(mouse_pos)
         self.menu()
 
 
-''' class GameOverMenu:
+class GameOverMenu:
     def __init__(self, mouse_pos):
         self.mouse_pos = mouse_pos
-        self.rect = pygame.image.load("graphics/").convert_alpha()
-        self.txt_game_over = draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.text_color, Variables.ANCHOPANTALLA // 4, Variables.ALTOPANTALLA // 6 * 5)
+        self.txt_game_over = draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.text_color, 832 // 2, 512 // 6 * 5)
 
     def menu(self):
         if self.txt_game_over.collidepoint(self.mouse_pos):
-            draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.txt_color_colission, Variables.ANCHOPANTALLA // 4, Variables.ALTOPANTALLA // 6 * 5)
+            draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.txt_color_colission, 832 // 2, 512 // 6 * 5)
 
     def update(self, mouse_pos):
         self.__init__(mouse_pos)
-        self.menu() '''
+        self.menu()
 
 
 class Portal(pygame.sprite.Sprite):
@@ -77,8 +76,7 @@ class Portal(pygame.sprite.Sprite):
         portal_surf = pygame.transform.rotozoom(portal_surf, 0, 1.4)
 
         self.image = portal_surf
-        self.rect = self.image.get_rect(center=(Variables.ANCHOPANTALLA // 2, Variables.ALTOPANTALLA // 2))
+        self.rect = self.image.get_rect(center=(832 // 2, 512 // 2))
 
     def update(self):
         self.__init__()
-
