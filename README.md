@@ -1,2 +1,2 @@
-# Game-Proyect-PC
+# Game-Project-PC
 Proyecto Programación de Computadores
