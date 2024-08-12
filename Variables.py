@@ -30,8 +30,8 @@ txt_color_game_over = ()
 txt_color_colission = (245, 176, 65)
 
 # Creando fuentes de textos de opciones y título
-text_titles = pygame.font.Font('fonts/PixelifySans-Regular.ttf', 60)
-text_options = pygame.font.Font('fonts/PixelifySans-Regular.ttf', 35)
-text_in_game = pygame.font.Font('fonts/PixelifySans-Regular.ttf', 25)
+text_titles = pygame.font.Font('Game-Project-PC-main/fonts/PixelifySans-Regular.ttf', 60)
+text_options = pygame.font.Font('Game-Project-PC-main/fonts/PixelifySans-Regular.ttf', 35)
+text_in_game = pygame.font.Font('Game-Project-PC-main/fonts/PixelifySans-Regular.ttf', 25)
 
-score = pygame.font.Font('fonts/PixelifySans-Regular.ttf', 30)
+score = pygame.font.Font('Game-Project-PC-main/fonts/PixelifySans-Regular.ttf', 30)

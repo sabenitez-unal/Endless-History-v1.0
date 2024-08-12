@@ -72,7 +72,7 @@ class GameOverMenu:
 class Portal(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        portal_surf = pygame.image.load("graphics/portal_mainmenu.png").convert_alpha()
+        portal_surf = pygame.image.load("Game-Project-PC-main/graphics/portal_mainmenu.png").convert_alpha()
         portal_surf = pygame.transform.rotozoom(portal_surf, 0, 1.4)
 
         self.image = portal_surf
