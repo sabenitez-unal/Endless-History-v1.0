@@ -377,6 +377,22 @@ while True:
         portal.draw(menus.screen)
         main_menu.update(mouse_pos)
 
+        # Se reestablece la vida del jugador
+        jugador.hp, player_hp = 50, 50
+
+        # Se vacían todas las sprites.
+        enemigos_list.empty()
+        disparo_list_player.empty()
+        disparo_list_en.empty()
+        curaciones_list.empty()
+        sprites.empty()
+
+        # Se "reinicia" el tiempo de Pygame a 0
+        last_time = pygame.time.get_ticks()
+
+        # Se incluye al jugador
+        sprites.add(jugador)
+
         # Creando bucle de eventos
         for event in pygame.event.get():
             # Evento de cierre
@@ -420,22 +436,6 @@ while True:
                     sys.exit()
                 # click sobre salir al menú
                 if Pause_menu.quit_txt.collidepoint(mouse_pos):
-                    # Se reestablece la vida del jugador
-                    jugador.hp, player_hp = 50, 50
-
-                    # Se vacían todas las sprites para comenzar de nuevo.
-                    enemigos_list.empty()
-                    disparo_list_player.empty()
-                    disparo_list_en.empty()
-                    curaciones_list.empty()
-                    sprites.empty()
-
-                    # Se "reinicia" el tiempo de Pygame
-                    last_time = pygame.time.get_ticks()
-
-                    # Se reincluye al jugador
-                    sprites.add(jugador)
-
                     # Vuelta al menú principal
                     game_over = False
                     game_menu = True
@@ -451,7 +451,7 @@ while True:
         jugador.update()
 
         # Generación Boss
-        if jugador.score >= 4:
+        if jugador.score >= 12:
             enemigos_list.add(boss)
             for ene in nivel:
                 if ene.tiempo_aparicion >= t_time:
@@ -537,22 +537,6 @@ while True:
             if event.type == pygame.MOUSEBUTTONUP:
                 # Evento de click sobre "Jugar"
                 if Game_over_menu.txt_game_over.collidepoint(mouse_pos):
-                    # Se reestablece la vida del jugador
-                    jugador.hp, player_hp = 50, 50
-
-                    # Se vacían todas las sprites para comenzar de nuevo.
-                    enemigos_list.empty()
-                    disparo_list_player.empty()
-                    disparo_list_en.empty()
-                    curaciones_list.empty()
-                    sprites.empty()
-
-                    # Se "reinicia" el tiempo de Pygame
-                    last_time = pygame.time.get_ticks()
-
-                    # Se reincluye al jugador
-                    sprites.add(jugador)
-
                     # Vuelta al menú principal
                     game_over = False
                     game_menu = True
