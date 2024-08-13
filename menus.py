@@ -3,7 +3,7 @@ import Variables
 
 screen = pygame.display.set_mode((832, 512))
 
-pygame.display.set_caption("Jueguito Endless")
+pygame.display.set_caption("Endless-History v1.0")
 
 
 # Función para dibujar los textos cada vez que se necesiten
@@ -58,11 +58,11 @@ class PauseMenu:
 class GameOverMenu:
     def __init__(self, mouse_pos):
         self.mouse_pos = mouse_pos
-        self.txt_game_over = draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.text_color, 832 // 2, 512 // 6 * 5)
+        self.txt_game_over = draw_txt("VOLVER AL MENÚ", Variables.text_options, Variables.txt_color_go, 832 // 2, 512 // 6 * 5)
 
     def menu(self):
         if self.txt_game_over.collidepoint(self.mouse_pos):
-            draw_txt("VOLVER A JUGAR", Variables.text_options, Variables.txt_color_colission, 832 // 2, 512 // 6 * 5)
+            draw_txt("VOLVER AL MENÚ", Variables.text_options, Variables.txt_color_colission, 832 // 2, 512 // 6 * 5)
 
     def update(self, mouse_pos):
         self.__init__(mouse_pos)
