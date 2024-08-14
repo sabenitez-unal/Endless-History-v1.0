@@ -36,7 +36,7 @@ probabilidades_drop = [True] * 1 + [False] * 1
 
 
 # Funcion Escalar imagen a una escala float como porcentaje
-def escalar_img(image, scale):  # Funcion de escalar imagen
+def escalar_img(image, scale):
     w = image.get_width()
     h = image.get_height()
     nueva_imagen = pygame.transform.scale(image, (w * scale, h * scale))
@@ -58,7 +58,7 @@ def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_tim
             if coords_spawn_temp:
                 coords_temp = coords_spawn_temp[random.randint(0, len(coords_spawn_temp) - 1)]
 
-                # Crear un enemigo aleatorio
+                # Crea un enemigo aleatorio
                 tipo_enemigo = random.choice([enemigo_melee, enemigo_range])
 
                 ene_temp = Enemigo(tipo_enemigo)
@@ -86,6 +86,7 @@ class Curacion(pygame.sprite.Sprite):
         sprites.add(self)
         curaciones_list.add(self)
 
+    # Actualiza la clase.
     def update(self, jugador):
         if self.rect.colliderect(jugador.rect):
             if not self.curado:
@@ -111,6 +112,7 @@ class Jugador(pygame.sprite.Sprite):
         self.rect.center = (width // 2, height // 2)
         self.score = 0
 
+    # Actualiza la clase
     def update(self):
         self.rect.x += self.velocidad_x
         self.rect.y += self.velocidad_y
@@ -149,7 +151,6 @@ class Jugador(pygame.sprite.Sprite):
 
 
 # Clase Enemigo
-# Clase Enemigo
 class Enemigo(Jugador):
     def __init__(self, tipo, tiempo_aparicion=0):
         self.tiempo_update = pygame.time.get_ticks()
@@ -167,6 +168,7 @@ class Enemigo(Jugador):
         self.rect.center = (width // 2, height // 2)  # Ajusta la posición inicial si es necesario
         self.tipo = tipo["type"]
 
+    # Función encargada de seguir la posición del jugador.
     def follow(self, objetivo):
         if self.hp <= 0:
             self.hp = 0
@@ -188,8 +190,8 @@ class Enemigo(Jugador):
         if self.tipo == "melee":
             if distancia < self.range and pygame.time.get_ticks() - self.tiempo_update >= self.atck_speed:
                 objetivo.hp -= self.dmg
-                self.tiempo_update = pygame.time.get_ticks()  # Asegúrate de que el enemigo no ataque de nuevo
-                self.kill()  # Eliminar al enemigo melee después de hacer daño
+                self.tiempo_update = pygame.time.get_ticks()
+                self.kill()
             else:
                 self.move(endx, endy)
 
@@ -206,8 +208,7 @@ class Enemigo(Jugador):
                 self.move(-endx, -endy)
             else:
                 self.move(endx, endy)
-
-        # Asegúrate de que el jefe no se salga del área visible
+              
         if self.rect.left < 64:
             self.rect.left = 64
         if self.rect.right > width - 64:
@@ -217,6 +218,7 @@ class Enemigo(Jugador):
         if self.rect.bottom > height - 70:
             self.rect.bottom = height - 70
 
+    # Función encargada de la generación de enemigos en pantalla.
     def spawn(self, lista_enemigos, objetivo):
         lista_enemigos.add(self)
         sprites.add(self)
@@ -228,29 +230,28 @@ class Enemigo(Jugador):
                 objetivo.score += 1
                 self.puntaje_agregado = True
 
-                # Verificar si se genera un objeto de curación
+              # Generación de objeto de curación por probabilidad.
                 if random.choice(probabilidades_drop):
                     nueva_curacion = Curacion(self.rect.center)
                     sprites.add(nueva_curacion)
-
             self.kill()
 
+    # Movimientos del enemigo.
     def move(self, delta_x, delta_y):
         self.rect.x += delta_x
         self.rect.y += delta_y
 
 
-# Clase disparo, el origen es para saber de donde sale
-# direccion solo cuando hay jugador, y objetivo es none si es jugador también.
+# Clase disparo
 class Disparo(pygame.sprite.Sprite):
     def __init__(self, origin, direccion=None, objetivo=None):
         super().__init__()
         self.image_original = pygame.image.load("graphics/Armas/Balas/laser.png").convert_alpha()
-        self.image = escalar_img(self.image_original, 0.5)  # Redimensionar la imagen
+        self.image = escalar_img(self.image_original, 0.5)  # Redimensiona la imagen
         self.rect = self.image.get_rect()
-        self.rect.center = origin.rect.center  # Inicializar el disparo en el centro del jugador
+        self.rect.center = origin.rect.center  # Inicializa el disparo en el centro del jugador
 
-        # Calcular la dirección del disparo
+        # Calcula la dirección del disparo
         if objetivo:
             objetivo_vector = pygame.math.Vector2(objetivo.rect.center)
             origen_vector = pygame.math.Vector2(self.rect.center)
@@ -264,16 +265,16 @@ class Disparo(pygame.sprite.Sprite):
                 raise ValueError("Debe proporcionar un objetivo o una dirección")
 
     def update(self, lista_enemigos):
-        # Mover el disparo en la dirección calculada
+        # Mueve el disparo en la dirección calculada
         self.rect.centerx += self.direccion.x * vel_disparo
         self.rect.centery += self.direccion.y * vel_disparo
 
-        # Verificar si el disparo está fuera de la pantalla
+        # Verifica si el disparo está fuera de la pantalla
         if (self.rect.right < 0 or self.rect.left > width or
                 self.rect.bottom < 0 or self.rect.top > height):
             self.kill()
 
-        # Verificar colisiones con enemigos
+        # Verifica las colisiones con los enemigos
         for enemigo in lista_enemigos:
             if enemigo.rect.colliderect(self.rect):
                 enemigo.hp -= dano_bala
@@ -377,20 +378,20 @@ disparando = False
 
 last_time = 0  # Variable que permite "reiniciar" el tiempo del juego.
 victory_screen_displayed = False  # Estado de juego ganado.
-victory_time = 0
+victory_time = 0 # Tiempo transcurrido desde que se ganó el juego.
 
 while True:
-    mouse_pos = pygame.mouse.get_pos()  # Posición del mouse
+    mouse_pos = pygame.mouse.get_pos()  # Posición del mouse.
 
     # Se actualiza el tiempo transcurrido desde el último reseteo.
     current_time = pygame.time.get_ticks() - last_time
 
-    if game_menu:  # En el menú principal
+    if game_menu:  # En el menú principal.
         menus.screen.blit(mainmenu_image, (0, 0))
         portal.draw(menus.screen)
         main_menu.update(mouse_pos)
 
-        # Se reestablece la vida del jugador
+        # Se reestablece la vida del jugador.
         jugador.hp, player_hp = 50, 50
 
         # Se vacían todas las sprites.
@@ -400,15 +401,15 @@ while True:
         curaciones_list.empty()
         sprites.empty()
 
-        # Se "reinicia" el tiempo de Pygame a 0
+        # Se "reinicia" el tiempo de Pygame a 0.
         last_time = pygame.time.get_ticks()
 
         # Se incluye al jugador
         sprites.add(jugador)
 
-        # Creando bucle de eventos
+        # Creando bucle de eventos.
         for event in pygame.event.get():
-            # Evento de cierre
+            # Evento de cierre.
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
@@ -456,13 +457,13 @@ while True:
     elif game_playing:  # El juego se ejecuta.
         screen.blit(fondo_actual, (0, 0))
 
-        # Dibujar sprites
+        # Dibujar sprites.
         sprites.draw(screen)
 
-        # Actualizar posición del Jugador
+        # Actualizar posición del Jugador.
         jugador.update()
 
-        # Generación Boss
+        # Generación Boss.
         if jugador.score >= 18:
             enemigos_list.add(boss)
             for ene in nivel:
@@ -473,6 +474,7 @@ while True:
                     ene.spawn(enemigos_list, jugador)
             boss.spawn(enemigos_list, jugador)
 
+        # Generación de los otros enemigos.
         elif jugador.score < 18:
             for ene in nivel:
                 if current_time >= ene.tiempo_aparicion:
@@ -488,16 +490,18 @@ while True:
         # dibujar vida
         dibujar_vida(jugador, screen, 10, 40)
 
+        # Cuando el jugador pierda su vida.
         if jugador.hp == 0:
             game_over = True
             game_playing = False
 
+        # Cuando se derrota al Boss.
         if boss.hp <= 0:
             if not victory_screen_displayed:
                 victory_screen_displayed = True
                 victory_time = current_time
 
-            # Mostrar pantalla de victoria
+        # Mostrar pantalla de victoria
         if victory_screen_displayed:
             screen.fill((0, 0, 0))  # Rellenar la pantalla con negro o el color que prefieras
             victory_text = Variables.game_won.render("¡Ganaste!", True, (255, 255, 255))
@@ -545,7 +549,7 @@ while True:
                     jugador.velocidad_x = 0
                 elif event.key == pygame.K_w or event.key == pygame.K_s:
                     jugador.velocidad_y = 0
-
+        # Eventos de disparo del jugador.
         if disparando and pygame.time.get_ticks() - tiempo_ultimo_disparo >= cadencia_disparo:
             nuevo_disparo = Disparo(jugador, mouse_pos)
             nuevo_disparo.rect.center = jugador.rect.center
@@ -553,10 +557,12 @@ while True:
             disparo_list_player.add(nuevo_disparo)
             tiempo_ultimo_disparo = pygame.time.get_ticks()
 
-    elif game_over:
+    elif game_over: # Menú de cuando se pierde la vida.
+        # Actualización de sprites del menú de Game Over.
         menus.screen.blit(img_gameover, (0, 0))
         Game_over_menu.update(mouse_pos)
 
+        # Bucle de eventos.
         for event in pygame.event.get():
             # Evento de cierre
             if event.type == pygame.QUIT:
@@ -570,6 +576,5 @@ while True:
                     game_over = False
                     game_menu = True
 
-    # Actualizar pantalla
-    pygame.display.flip()
+    pygame.display.flip()  # Actualizar pantalla
     clock.tick(60)  # Limitar la velocidad de fotogramas a 60 FPS
