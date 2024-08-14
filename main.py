@@ -351,7 +351,8 @@ boss = Enemigo(enemigo_boss, 30)
 img_gameover = pygame.image.load("graphics/Game Over/Sin menu/Gave Over - Sin Menu_0001.png").convert_alpha()
 mainmenu_image = pygame.image.load(
     "graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
-fondo1 = pygame.image.load("graphics/Mapas/Prehistoria.png")
+fondo1 = pygame.image.load("graphics/Mapas/Prehistoria.png").convert_alpha()
+fondo2 = pygame.image.load("graphics/Mapas/Guerra.png").convert_alpha()
 
 # Sprite del jugador.
 jugador = Jugador()
@@ -365,12 +366,13 @@ disparando = False
 
 # Variable que permite "reiniciar" el tiempo del juego.
 last_time = 0
+escenario = 1
 
 while True:
     mouse_pos = pygame.mouse.get_pos()  # Posición del mouse
 
     # Se actualiza el tiempo transcurrido desde el último reseteo.
-    t_time = pygame.time.get_ticks() - last_time
+    current_time = pygame.time.get_ticks() - last_time
 
     if game_menu:  # En el menú principal
         menus.screen.blit(mainmenu_image, (0, 0))
@@ -441,8 +443,12 @@ while True:
                     game_menu = True
 
     elif game_playing:  # El juego se ejecuta.
-        # Dibujar fondo1
-        screen.blit(fondo1, (0, 0))
+        if escenario == 1:
+            # Dibujar fondo1
+            screen.blit(fondo1, (0, 0))
+        elif escenario == 2:
+            # Dibujar fondo2
+            screen.blit(fondo2, (0, 0))
 
         # Dibujar sprites
         sprites.draw(screen)
@@ -451,19 +457,38 @@ while True:
         jugador.update()
 
         # Generación Boss
-        if jugador.score >= 12:
+        if jugador.score >= 3:
             enemigos_list.add(boss)
             for ene in nivel:
-                if ene.tiempo_aparicion >= t_time:
+                if ene.tiempo_aparicion >= current_time:
                     nivel.remove(ene)
             for ene in nivel:
-                if t_time >= ene.tiempo_aparicion:
+                if current_time >= ene.tiempo_aparicion:
                     ene.spawn(enemigos_list, jugador)
             boss.spawn(enemigos_list, jugador)
 
-        elif jugador.score < 50:
+            if boss.hp == 0:
+                jugador.hp, player_hp = 50, 50
+
+                # Se vacían todas las sprites.
+                enemigos_list.empty()
+                disparo_list_player.empty()
+                disparo_list_en.empty()
+                curaciones_list.empty()
+                sprites.empty()
+
+                # Se "reinicia" el tiempo de Pygame a 0
+                last_time = pygame.time.get_ticks()
+
+                # Se incluye al jugador
+                sprites.add(jugador)
+
+                escenario += 1
+                jugador.score = 0
+
+        elif jugador.score < 3:
             for ene in nivel:
-                if t_time >= ene.tiempo_aparicion:
+                if current_time >= ene.tiempo_aparicion:
                     ene.spawn(enemigos_list, jugador)
 
         # Actualizar posición del disparo
