@@ -353,6 +353,8 @@ mainmenu_image = pygame.image.load(
     "graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
 fondo1 = pygame.image.load("graphics/Mapas/Prehistoria.png").convert_alpha()
 fondo2 = pygame.image.load("graphics/Mapas/Guerra.png").convert_alpha()
+fondo3 = pygame.image.load("graphics/Mapas/Futuro.png").convert_alpha()
+fondo4 = pygame.image.load("graphics/Mapas/Apocalipsis.png").convert_alpha()
 
 # Sprite del jugador.
 jugador = Jugador()
@@ -443,12 +445,7 @@ while True:
                     game_menu = True
 
     elif game_playing:  # El juego se ejecuta.
-        if escenario == 1:
-            # Dibujar fondo1
-            screen.blit(fondo1, (0, 0))
-        elif escenario == 2:
-            # Dibujar fondo2
-            screen.blit(fondo2, (0, 0))
+        screen.blit(fondo1, (0, 0))
 
         # Dibujar sprites
         sprites.draw(screen)
@@ -466,25 +463,6 @@ while True:
                 if current_time >= ene.tiempo_aparicion:
                     ene.spawn(enemigos_list, jugador)
             boss.spawn(enemigos_list, jugador)
-
-            if boss.hp == 0:
-                jugador.hp, player_hp = 50, 50
-
-                # Se vacían todas las sprites.
-                enemigos_list.empty()
-                disparo_list_player.empty()
-                disparo_list_en.empty()
-                curaciones_list.empty()
-                sprites.empty()
-
-                # Se "reinicia" el tiempo de Pygame a 0
-                last_time = pygame.time.get_ticks()
-
-                # Se incluye al jugador
-                sprites.add(jugador)
-
-                escenario += 1
-                jugador.score = 0
 
         elif jugador.score < 3:
             for ene in nivel:
