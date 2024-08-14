@@ -1,8 +1,10 @@
 import pygame
 import Variables
 
+# Genera la pantalla para poder representar los menús.
 screen = pygame.display.set_mode((832, 512))
 
+# Nombre del juego.
 pygame.display.set_caption("Endless-History v1.0")
 
 
@@ -54,7 +56,7 @@ class PauseMenu:
         self.__init__(mouse_pos)
         self.menu()
 
-
+# Clase del menú de Game Over - Cuando se pierde la vida.
 class GameOverMenu:
     def __init__(self, mouse_pos):
         self.mouse_pos = mouse_pos
@@ -69,6 +71,7 @@ class GameOverMenu:
         self.menu()
 
 
+# Clase del portal que aparece en MainMenu
 class Portal(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
