@@ -1,8 +1,9 @@
 import math
+import os
 import random
-import menus
-import pygame
 import sys
+import pygame
+import menus
 
 # Resolución.
 width = 832
@@ -10,21 +11,20 @@ height = 512
 
 vel_disparo = 4  # Velocidad de disparo
 player_speed = 3  # Velocidad de movimiento del jugador
-player_hp = 50 # Vida del jugador
+player_hp = 50  # Vida del jugador
 player_run_mult = 2
-enemy_speed = 2 #Velocidad del enemigo
-daño_bala = 5  # Daño de la bala
+enemy_speed = 1.7  # Velocidad del enemigo
+dano_bala = 5  # Daño de la bala
 tiempo_ultimo_disparo = 0  # Tiempo del último disparo
 cadencia_disparo = 500  # Intervalo de tiempo entre disparos (en milisegundos)
 
 # Tipos de enemigo
-enemigo_melee = {"type": "melee", "hp": 10, "dmg": 10, "range": 20, "atck_speed": 1000,
-                 "png": "Game-Project-PC-main/graphics/Personajes/Enemigos/Enemy.png"}
-enemigo_range = {"type": "range", "hp": 10, "dmg": 10, "range": 200, "atck_speed": 1000,
-                 "png": "Game-Project-PC-main/graphics/Personajes/Enemigos/Enemy.png"}
-enemigo_boss = {"type": "range", "hp": 100, "dmg": 10, "range": 300, "atck_speed": 1500,
-                 "png": "Game-Project-PC-main/graphics/Personajes/Enemigos/Enemy.png"}
-
+enemigo_melee = {"type": "melee", "hp": 20, "dmg": 10, "range": 20, "atck_speed": 1000,
+                 "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
+enemigo_range = {"type": "range", "hp": 5, "dmg": 10, "range": 180, "atck_speed": 1000,
+                 "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
+enemigo_boss = {"type": "range", "hp": 100, "dmg": 20, "range": 220, "atck_speed": 1500,
+                "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 8}
 
 # Coordenadas de donde se generan los enemigos.
 nivel_1_coords = ((width // 2, 0), (width // 2, height), (0, height // 2),
@@ -42,10 +42,6 @@ def escalar_img(image, scale):  # Funcion de escalar imagen
 
 # Función que se encarga de la Generación de niveles
 def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_time):
-    # cant_enemigos_por_ronda: Cantidad de enemigos por ronda (min, max)
-    # max_enemigos: cantidad enemigos total
-    # coords_spawn: Tupla de tuplas de coords, ej: ((izq), (arr), (der), (abajo))
-    # spawn_time: cada cuanto spawnea cada ronda
     coords_spawn_temp = list(coords_spawn)
     lista_return = []
     ronda = 1
@@ -58,7 +54,11 @@ def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_tim
                 spawn_time_temp += 500
             if coords_spawn_temp:
                 coords_temp = coords_spawn_temp[random.randint(0, len(coords_spawn_temp) - 1)]
-                ene_temp = Enemigo(enemigo_range)
+                
+                # Crear un enemigo aleatorio
+                tipo_enemigo = random.choice([enemigo_melee, enemigo_range])
+                
+                ene_temp = Enemigo(tipo_enemigo)
                 max_enemigos -= 1
                 ene_temp.rect.center = coords_temp
                 coords_spawn_temp.remove(coords_temp)
@@ -72,17 +72,42 @@ def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_tim
     return lista_return
 
 
+
+# Clase Curación
+class Curacion(pygame.sprite.Sprite):
+    def __init__(self, position):
+        super().__init__()
+        self.curado = False
+        self.image = escalar_img(pygame.image.load("Game-Project-PC/graphics/Objects/corazon.png").convert_alpha(), 1)
+        self.rect = self.image.get_rect()
+        self.rect.center = position
+        sprites.add(self)
+        curaciones_list.add(self)
+
+    def update(self, jugador):
+        if self.rect.colliderect(jugador.rect):
+            if not self.curado:
+                jugador.hp += 10
+                self.curado = False
+            self.kill()
+
+
 # Clase Jugador
 class Jugador(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.hp = player_hp
-        self.image_original = pygame.image.load("Game-Project-PC-main/graphics/Personajes/Jugador/Caballero.png").convert_alpha()
-        self.image = escalar_img(self.image_original, 2) 
-        self.rect = self.image.get_rect()
-        self.rect.center = (width // 2, height // 2)
         self.velocidad_x = 0
         self.velocidad_y = 0
+        self.animaciones_cd = 100
+        self.frame_index = 0
+        self.animaciones = personaje_animaciones
+        self.animaciones_lado = self.animaciones[0]
+        self.image = self.animaciones_lado[self.frame_index]
+        self.update_time = pygame.time.get_ticks()
+        self.rect = self.image.get_rect()
+        self.rect.center = (width // 2, height // 2)
+        self.score = 0
 
     def update(self):
         self.rect.x += self.velocidad_x
@@ -96,26 +121,49 @@ class Jugador(pygame.sprite.Sprite):
         if self.rect.bottom > height - 70:
             self.rect.bottom = height - 70
 
+        if self.velocidad_x > 0:
+            self.animaciones_lado = self.animaciones[3]
+        if self.velocidad_x < 0:
+            self.animaciones_lado = self.animaciones[2]
+        if self.velocidad_y > 0:
+            self.animaciones_lado = self.animaciones[0]
+        if self.velocidad_y < 0:
+            self.animaciones_lado = self.animaciones[1]
+        if self.velocidad_x == 0 and self.velocidad_y == 0:
+            self.frame_index = 1
+
         if self.hp <= 0:  # Verifica si el jugador está muerto
             self.hp = 0
 
+        if self.hp >= 50:
+            self.hp = 50
 
-# Clase enemigo
+        self.image = self.animaciones_lado[self.frame_index]
+        if pygame.time.get_ticks() - self.update_time >= self.animaciones_cd:
+            self.frame_index += 1
+            self.update_time = pygame.time.get_ticks()
+        if self.frame_index >= len(self.animaciones):
+            self.frame_index = 0
+
+
+# Clase Enemigo
 class Enemigo(Jugador):
     def __init__(self, tipo, tiempo_aparicion=0):
         self.tiempo_update = pygame.time.get_ticks()
         super().__init__()
         self.vivo = True
+        self.puntaje_agregado = False
         self.hp = tipo["hp"]
         self.dmg = tipo["dmg"]
         self.range = tipo["range"]
         self.atck_speed = tipo["atck_speed"]
         self.tiempo_aparicion = tiempo_aparicion
         self.imagen = pygame.image.load(tipo["png"]).convert_alpha()
-        self.image = escalar_img(self.image_original, 2)  # Cambia 0.5 al porcentaje que desees
+        self.image = escalar_img(self.imagen, tipo["scale"])
+        self.rect = self.image.get_rect()
+        self.rect.center = (width // 2, height // 2)  # Ajusta la posición inicial si es necesario
         self.tipo = tipo["type"]
 
-    # metodo follow con un objetivo que al ser singleplayer siempre sera el jugador
     def follow(self, objetivo):
         if self.hp <= 0:
             self.hp = 0
@@ -137,11 +185,13 @@ class Enemigo(Jugador):
         if self.tipo == "melee":
             if distancia < self.range and pygame.time.get_ticks() - self.tiempo_update >= self.atck_speed:
                 objetivo.hp -= self.dmg
+                self.tiempo_update = pygame.time.get_ticks()  # Asegúrate de que el enemigo no ataque de nuevo
+                self.kill()  # Eliminar al enemigo melee después de hacer daño
             else:
                 self.move(endx, endy)
 
         if self.tipo == "range":
-            if distancia < self.range + 50 and distancia > self.range - 50:
+            if self.range + 50 > distancia > self.range - 50:
                 if pygame.time.get_ticks() - self.tiempo_update >= self.atck_speed:
                     nuevo_disparo = Disparo(self, None, objetivo)
                     nuevo_disparo.rect.x = self.rect.x
@@ -154,6 +204,7 @@ class Enemigo(Jugador):
             else:
                 self.move(endx, endy)
 
+        # Asegúrate de que el jefe no se salga del área visible
         if self.rect.left < 64:
             self.rect.left = 64
         if self.rect.right > width - 64:
@@ -166,12 +217,19 @@ class Enemigo(Jugador):
     def spawn(self, lista_enemigos, objetivo):
         lista_enemigos.add(self)
         sprites.add(self)
+
         if self.vivo:
             self.follow(objetivo)
         else:
-            if random.choice(probabilidades_drop):
-                # INSERTAR AQUI UN OBJETO DE VIDA VIDA
-                pass
+            if not self.puntaje_agregado:
+                objetivo.score += 1
+                self.puntaje_agregado = True
+
+                # Verificar si se genera un objeto de curación
+                if random.choice(probabilidades_drop):
+                    nueva_curacion = Curacion(self.rect.center)
+                    sprites.add(nueva_curacion)
+
             self.kill()
 
     def move(self, delta_x, delta_y):
@@ -179,61 +237,67 @@ class Enemigo(Jugador):
         self.rect.y += delta_y
 
 
+
 # Clase disparo, el origen es para saber de donde sale
-# direccion solo cuando hay jugador, y objetivo es none si es jugador tmb
+# direccion solo cuando hay jugador, y objetivo es none si es jugador también.
 class Disparo(pygame.sprite.Sprite):
-    def __init__(self, origin=None, direccion=None, objetivo=None):
+    def __init__(self, origin, direccion=None, objetivo=None):
         super().__init__()
-        self.image_original = pygame.image.load("Game-Project-PC-main/graphics/Armas/Balas/laser.png").convert_alpha()
-        self.image = escalar_img(self.image_original, 0.5)  
+        self.image_original = pygame.image.load("Game-Project-PC/graphics/Armas/Balas/laser.png").convert_alpha()
+        self.image = escalar_img(self.image_original, 0.5)  # Redimensionar la imagen
         self.rect = self.image.get_rect()
-        self.originx = origin.rect.x
-        self.originy = origin.rect.y
+        self.rect.center = origin.rect.center  # Inicializar el disparo en el centro del jugador
+
+        # Calcular la dirección del disparo
         if objetivo:
-            self.objetivox = objetivo.rect.x
-            self.objetivoy = objetivo.rect.y
+            objetivo_vector = pygame.math.Vector2(objetivo.rect.center)
+            origen_vector = pygame.math.Vector2(self.rect.center)
+            self.direccion = (objetivo_vector - origen_vector).normalize()
         else:
             if direccion:
-                self.objetivox = direccion[0]
-                self.objetivoy = direccion[1]
+                direccion_vector = pygame.math.Vector2(direccion)
+                origen_vector = pygame.math.Vector2(self.rect.center)
+                self.direccion = (direccion_vector - origen_vector).normalize()
             else:
-                if direccion == "up":
-                    self.objetivox = self.originx
-                    self.objetivoy = self.originy - 1
-                if direccion == "down":
-                    self.objetivox = self.originx
-                    self.objetivoy = self.originy + 1
-                if direccion == "left":
-                    self.objetivox = self.originx - 1
-                    self.objetivoy = self.originy
-                if direccion == "right":
-                    self.objetivox = self.originx + 1
-                    self.objetivoy = self.originy
-
+                raise ValueError("Debe proporcionar un objetivo o una dirección")
 
     def update(self, lista_enemigos):
-        x1 = self.originx
-        y1 = self.originy
-        x2 = self.objetivox
-        y2 = self.objetivoy
-        deltx = x2 - x1
-        delty = y2 - y1
-        d = math.sqrt((deltx ** 2) + (delty ** 2))
-        vx = deltx / (d / vel_disparo)
-        vy = delty / (d / vel_disparo)
-        self.rect.x += vx
-        self.rect.y += vy
-        if self.rect.x > width or self.rect.x < 0:
+        # Mover el disparo en la dirección calculada
+        self.rect.centerx += self.direccion.x * vel_disparo
+        self.rect.centery += self.direccion.y * vel_disparo
+
+        # Verificar si el disparo está fuera de la pantalla
+        if (self.rect.right < 0 or self.rect.left > width or
+                self.rect.bottom < 0 or self.rect.top > height):
             self.kill()
-        if self.rect.y > height or self.rect.x < 0:
-            self.kill()
-        # esta parte es para ver colisiones
+
+        # Verificar colisiones con enemigos
         for enemigo in lista_enemigos:
             if enemigo.rect.colliderect(self.rect):
-                enemigo.hp -= daño_bala
-                print(enemigo.hp)
+                enemigo.hp -= dano_bala
                 self.kill()
                 break
+
+
+# Apartado numeros.
+def cargar_imagenes_numeros(carpeta):
+    imagenes = {}
+    for i in range(10):  # Para los números del 0 al 9
+        imagen = pygame.image.load(os.path.join(carpeta, f'numeros0{i}.png')).convert_alpha()
+        imagen = escalar_img(imagen, 4)
+        imagenes[i] = imagen
+    return imagenes
+
+
+# Muestra la vida del jugador.
+def dibujar_vida(jugador, pantalla, x, y):
+    vida = jugador.hp
+    distancia_x = 0
+    if vida >= 0:
+        for digito in str(vida):
+            imagen = imagenes_numeros[int(digito)]
+            pantalla.blit(imagen, (x + distancia_x, y))
+            distancia_x += imagen.get_width()
 
 
 # Inicio del motor de pygame.
@@ -242,6 +306,7 @@ pygame.init()
 # Estados del juego
 game_paused, game_playing, game_menu, game_over = False, False, True, False
 
+# Configuración de pantalla y del tiempo del juego.
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
@@ -250,9 +315,11 @@ sprites = pygame.sprite.Group()
 disparo_list_en = pygame.sprite.Group()
 disparo_list_player = pygame.sprite.Group()
 enemigos_list = pygame.sprite.Group()
+curaciones_list = pygame.sprite.Group()
 
+
+imagenes_numeros = cargar_imagenes_numeros('Game-Project-PC/graphics/Numeros')  # Carga los numeros usados para mostrar la vida del psj.
 mouse_pos = (0, 0)  # Posición del mouse
-score = 0  # Puntaje inicial
 
 # Clases de los menus
 main_menu = menus.MainMenu(mouse_pos)
@@ -261,19 +328,45 @@ Game_over_menu = menus.GameOverMenu(mouse_pos)
 portal = pygame.sprite.GroupSingle()
 portal.add(menus.Portal())
 
-# Imagen del Jefe
-boss_image = pygame.image.load("Game-Project-PC-main/graphics/Personajes/Enemigos/Enemy.png").convert_alpha()
-boss_image = escalar_img(boss_image, 4)
+
+# Función que crea una lista con los fotogramas de animación del jugador.
+def carpeta_a_lista_animaciones(path_carpeta):
+    lista_return = []
+    for frame in os.listdir(path_carpeta + '/Fotogramas'):
+        img = pygame.image.load(path_carpeta + '/Fotogramas/' + frame).convert_alpha()
+        lista_return.append(img)
+    return lista_return
+
+
+# SECCION ANIMACIONES DEL PERSONAJE PRINCIPAL
+caminar_adelante = list(map(lambda img: escalar_img(img, 2),
+                            carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Adelante')))
+caminar_atras = list(
+    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Atras')))
+caminar_izquierda = list(map(lambda img: escalar_img(img, 2),
+                             carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Izquierda')))
+caminar_derecha = list(
+    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Derecha')))
+personaje_animaciones = [caminar_adelante, caminar_atras, caminar_izquierda, caminar_derecha]
 
 # Estado del jefe
-boss_state = False
-boss = Enemigo(enemigo_boss, 15)
+boss = Enemigo(enemigo_boss, 30)
 
 # Imágenes de Fondo
-img_gameover = pygame.image.load("Game-Project-PC-main/graphics/Game Over/Sin menu/Gave Over - Sin Menu_0001.png").convert_alpha()
+img_gameover = pygame.image.load("Game-Project-PC/graphics/Game Over/Sin menu/Gave Over - Sin Menu_0001.png").convert_alpha()
 mainmenu_image = pygame.image.load(
-    "Game-Project-PC-main/graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
-fondo1 = pygame.image.load("Game-Project-PC-main/graphics/Mapas/Prehistoria.png")
+    "Game-Project-PC/graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
+
+fondo1 = pygame.image.load("Game-Project-PC/graphics/Mapas/Prehistoria.png").convert_alpha()
+fondo2 = pygame.image.load("Game-Project-PC/graphics/Mapas/Guerra.png").convert_alpha()
+fondo3 = pygame.image.load("Game-Project-PC/graphics/Mapas/Futuro.png").convert_alpha()
+fondo4 = pygame.image.load("Game-Project-PC/graphics/Mapas/Apocalipsis.png").convert_alpha()
+
+# Lista de fondos
+fondos = [fondo1, fondo2, fondo3, fondo4]
+
+# Seleccionar un fondo aleatorio
+fondo_actual = random.choice(fondos)
 
 # Sprite del jugador.
 jugador = Jugador()
@@ -282,17 +375,42 @@ player_list.add(jugador)
 sprites.add(jugador)
 
 # Generación de niveles.
-nivel_1 = generar_nivel((3, 3), 6, nivel_1_coords, 10000)
-
+nivel = generar_nivel((3, 5), 20, nivel_1_coords, 7000)
 disparando = False
+
+# Variable que permite "reiniciar" el tiempo del juego.
+last_time = 0
+escenario = 1
+victory_screen_displayed = False
+game_over_font = pygame.font.Font('Game-Project-PC/fonts/PixelifySans-Regular.ttf', 74)  
+
 
 while True:
     mouse_pos = pygame.mouse.get_pos()  # Posición del mouse
+
+    # Se actualiza el tiempo transcurrido desde el último reseteo
+    current_time = pygame.time.get_ticks() - last_time
 
     if game_menu:  # En el menú principal
         menus.screen.blit(mainmenu_image, (0, 0))
         portal.draw(menus.screen)
         main_menu.update(mouse_pos)
+
+        # Se restablece la vida del jugador
+        jugador.hp, player_hp = 50, 50
+
+        # Se vacían todas las sprites
+        enemigos_list.empty()
+        disparo_list_player.empty()
+        disparo_list_en.empty()
+        curaciones_list.empty()
+        sprites.empty()
+
+        # Se reinicia el tiempo de Pygame a 0
+        last_time = pygame.time.get_ticks()
+
+        # Se incluye al jugador
+        sprites.add(jugador)
 
         # Creando bucle de eventos
         for event in pygame.event.get():
@@ -337,12 +455,12 @@ while True:
                     sys.exit()
                 # click sobre salir al menú
                 if Pause_menu.quit_txt.collidepoint(mouse_pos):
-                    game_playing = False
+                    # Vuelta al menú principal
+                    game_over = False
                     game_menu = True
 
-    elif game_playing:  # El juego se ejecuta.
-        # Dibujar fondo1
-        screen.blit(fondo1, (0, 0))
+    elif game_playing:  # El juego se ejecuta
+        screen.blit(fondo_actual, (0, 0))
 
         # Dibujar sprites
         sprites.draw(screen)
@@ -351,20 +469,49 @@ while True:
         jugador.update()
 
         # Generación Boss
-        if score == 50:
+        if jugador.score >= 17:
             enemigos_list.add(boss)
-        elif score < 50:
-            for ene in nivel_1:
-                if pygame.time.get_ticks() >= ene.tiempo_aparicion:
+            for ene in nivel:
+                if ene.tiempo_aparicion >= current_time:
+                    nivel.remove(ene)
+            for ene in nivel:
+                if current_time >= ene.tiempo_aparicion:
+                    ene.spawn(enemigos_list, jugador)
+            boss.spawn(enemigos_list, jugador)
+
+        elif jugador.score < 20:
+            for ene in nivel:
+                if current_time >= ene.tiempo_aparicion:
                     ene.spawn(enemigos_list, jugador)
 
         # Actualizar posición del disparo
         disparo_list_en.update(player_list)
         disparo_list_player.update(enemigos_list)
 
-        if jugador.hp == 0:
+        # Actualizar curaciones
+        curaciones_list.update(jugador)
+
+        # Dibujar vida
+        dibujar_vida(jugador, screen, 10, 40)
+
+        if jugador.hp <= 0:
             game_over = True
             game_playing = False
+
+        if boss.hp <= 0:
+            if not victory_screen_displayed:
+                victory_screen_displayed = True
+                victory_start_time = pygame.time.get_ticks()
+
+        # Mostrar pantalla de victoria
+        if victory_screen_displayed:
+            screen.fill((0, 0, 0))  # Rellenar la pantalla con negro o el color que prefieras
+            victory_text = game_over_font.render("¡Ganaste!", True, (255, 255, 255))
+            screen.blit(victory_text, (width // 2 - victory_text.get_width() // 2, height // 2 - victory_text.get_height() // 2))
+
+            # Esperar 5 segundos antes de cerrar el juego
+            if pygame.time.get_ticks() - victory_start_time >= 2000:
+                pygame.quit()
 
         # Controles y eventos
         for event in pygame.event.get():
@@ -397,7 +544,6 @@ while True:
                 if event.button == 1:  # Botón izquierdo
                     disparando = False
 
-
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a or event.key == pygame.K_d:
                     jugador.velocidad_x = 0
@@ -424,11 +570,10 @@ while True:
             if event.type == pygame.MOUSEBUTTONUP:
                 # Evento de click sobre "Jugar"
                 if Game_over_menu.txt_game_over.collidepoint(mouse_pos):
-                    # El juego corre
-                    game_playing = True
+                    # Vuelta al menú principal
                     game_over = False
+                    game_menu = True
 
     # Actualizar pantalla
-    pygame.display.update()
+    pygame.display.flip()
     clock.tick(60)  # Limitar la velocidad de fotogramas a 60 FPS
-
