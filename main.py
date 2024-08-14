@@ -373,7 +373,7 @@ player_list.add(jugador)
 sprites.add(jugador)
 
 # Generación de niveles.
-nivel = generar_nivel((3, 5), 20, nivel_1_coords, 7000)
+nivel = generar_nivel((2, 6), 35, nivel_1_coords, 7000)
 disparando = False
 
 last_time = 0  # Variable que permite "reiniciar" el tiempo del juego.
