@@ -2,7 +2,10 @@ import math
 import os
 import random
 import sys
+
 import pygame
+
+import Variables
 import menus
 
 # Resolución.
@@ -20,11 +23,11 @@ cadencia_disparo = 500  # Intervalo de tiempo entre disparos (en milisegundos)
 
 # Tipos de enemigo
 enemigo_melee = {"type": "melee", "hp": 20, "dmg": 10, "range": 20, "atck_speed": 1000,
-                 "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
+                 "png": "graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
 enemigo_range = {"type": "range", "hp": 5, "dmg": 10, "range": 180, "atck_speed": 1000,
-                 "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
+                 "png": "graphics/Personajes/Enemigos/Enemy.png", "scale": 2}
 enemigo_boss = {"type": "range", "hp": 100, "dmg": 20, "range": 220, "atck_speed": 1500,
-                "png": "Game-Project-PC/graphics/Personajes/Enemigos/Enemy.png", "scale": 8}
+                "png": "graphics/Personajes/Enemigos/Enemy.png", "scale": 8}
 
 # Coordenadas de donde se generan los enemigos.
 nivel_1_coords = ((width // 2, 0), (width // 2, height), (0, height // 2),
@@ -54,10 +57,10 @@ def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_tim
                 spawn_time_temp += 500
             if coords_spawn_temp:
                 coords_temp = coords_spawn_temp[random.randint(0, len(coords_spawn_temp) - 1)]
-                
+
                 # Crear un enemigo aleatorio
                 tipo_enemigo = random.choice([enemigo_melee, enemigo_range])
-                
+
                 ene_temp = Enemigo(tipo_enemigo)
                 max_enemigos -= 1
                 ene_temp.rect.center = coords_temp
@@ -72,13 +75,12 @@ def generar_nivel(cant_enemigos_por_ronda, max_enemigos, coords_spawn, spawn_tim
     return lista_return
 
 
-
 # Clase Curación
 class Curacion(pygame.sprite.Sprite):
     def __init__(self, position):
         super().__init__()
         self.curado = False
-        self.image = escalar_img(pygame.image.load("Game-Project-PC/graphics/Objects/corazon.png").convert_alpha(), 1)
+        self.image = escalar_img(pygame.image.load("graphics/Objects/corazon.png").convert_alpha(), 1)
         self.rect = self.image.get_rect()
         self.rect.center = position
         sprites.add(self)
@@ -146,6 +148,7 @@ class Jugador(pygame.sprite.Sprite):
             self.frame_index = 0
 
 
+# Clase Enemigo
 # Clase Enemigo
 class Enemigo(Jugador):
     def __init__(self, tipo, tiempo_aparicion=0):
@@ -237,13 +240,12 @@ class Enemigo(Jugador):
         self.rect.y += delta_y
 
 
-
 # Clase disparo, el origen es para saber de donde sale
 # direccion solo cuando hay jugador, y objetivo es none si es jugador también.
 class Disparo(pygame.sprite.Sprite):
     def __init__(self, origin, direccion=None, objetivo=None):
         super().__init__()
-        self.image_original = pygame.image.load("Game-Project-PC/graphics/Armas/Balas/laser.png").convert_alpha()
+        self.image_original = pygame.image.load("graphics/Armas/Balas/laser.png").convert_alpha()
         self.image = escalar_img(self.image_original, 0.5)  # Redimensionar la imagen
         self.rect = self.image.get_rect()
         self.rect.center = origin.rect.center  # Inicializar el disparo en el centro del jugador
@@ -317,8 +319,7 @@ disparo_list_player = pygame.sprite.Group()
 enemigos_list = pygame.sprite.Group()
 curaciones_list = pygame.sprite.Group()
 
-
-imagenes_numeros = cargar_imagenes_numeros('Game-Project-PC/graphics/Numeros')  # Carga los numeros usados para mostrar la vida del psj.
+imagenes_numeros = cargar_imagenes_numeros('graphics/Numeros')  # Carga los numeros usados para mostrar la vida del psj.
 mouse_pos = (0, 0)  # Posición del mouse
 
 # Clases de los menus
@@ -340,33 +341,29 @@ def carpeta_a_lista_animaciones(path_carpeta):
 
 # SECCION ANIMACIONES DEL PERSONAJE PRINCIPAL
 caminar_adelante = list(map(lambda img: escalar_img(img, 2),
-                            carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Adelante')))
+                            carpeta_a_lista_animaciones('graphics/Personaje principal/Caminar - Adelante')))
 caminar_atras = list(
-    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Atras')))
+    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('graphics/Personaje principal/Caminar - Atras')))
 caminar_izquierda = list(map(lambda img: escalar_img(img, 2),
-                             carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Izquierda')))
+                             carpeta_a_lista_animaciones('graphics/Personaje principal/Caminar - Izquierda')))
 caminar_derecha = list(
-    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('Game-Project-PC/graphics/Personaje principal/Caminar - Derecha')))
+    map(lambda img: escalar_img(img, 2), carpeta_a_lista_animaciones('graphics/Personaje principal/Caminar - Derecha')))
 personaje_animaciones = [caminar_adelante, caminar_atras, caminar_izquierda, caminar_derecha]
 
 # Estado del jefe
 boss = Enemigo(enemigo_boss, 30)
 
 # Imágenes de Fondo
-img_gameover = pygame.image.load("Game-Project-PC/graphics/Game Over/Sin menu/Gave Over - Sin Menu_0001.png").convert_alpha()
+img_gameover = pygame.image.load("graphics/Game Over/Sin menu/Gave Over - Sin Menu_0001.png").convert_alpha()
 mainmenu_image = pygame.image.load(
-    "Game-Project-PC/graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
+    "graphics/Cambio de Nivel/Fondo solo/Fondo 835 x 532/Fondo 835 x 532.gif").convert_alpha()
+fondo1 = pygame.image.load("graphics/Mapas/Prehistoria.png").convert_alpha()
+fondo2 = pygame.image.load("graphics/Mapas/Guerra.png").convert_alpha()
+fondo3 = pygame.image.load("graphics/Mapas/Futuro.png").convert_alpha()
+fondo4 = pygame.image.load("graphics/Mapas/Apocalipsis.png").convert_alpha()
 
-fondo1 = pygame.image.load("Game-Project-PC/graphics/Mapas/Prehistoria.png").convert_alpha()
-fondo2 = pygame.image.load("Game-Project-PC/graphics/Mapas/Guerra.png").convert_alpha()
-fondo3 = pygame.image.load("Game-Project-PC/graphics/Mapas/Futuro.png").convert_alpha()
-fondo4 = pygame.image.load("Game-Project-PC/graphics/Mapas/Apocalipsis.png").convert_alpha()
-
-# Lista de fondos
-fondos = [fondo1, fondo2, fondo3, fondo4]
-
-# Seleccionar un fondo aleatorio
-fondo_actual = random.choice(fondos)
+fondos = [fondo1, fondo2, fondo3, fondo4]  # Lista de fondos
+fondo_actual = random.choice(fondos)  # Seleccionar un fondo aleatorio
 
 # Sprite del jugador.
 jugador = Jugador()
@@ -378,17 +375,14 @@ sprites.add(jugador)
 nivel = generar_nivel((3, 5), 20, nivel_1_coords, 7000)
 disparando = False
 
-# Variable que permite "reiniciar" el tiempo del juego.
-last_time = 0
-escenario = 1
-victory_screen_displayed = False
-game_over_font = pygame.font.Font('Game-Project-PC/fonts/PixelifySans-Regular.ttf', 74)  
-
+last_time = 0  # Variable que permite "reiniciar" el tiempo del juego.
+victory_screen_displayed = False  # Estado de juego ganado.
+victory_time = 0
 
 while True:
     mouse_pos = pygame.mouse.get_pos()  # Posición del mouse
 
-    # Se actualiza el tiempo transcurrido desde el último reseteo
+    # Se actualiza el tiempo transcurrido desde el último reseteo.
     current_time = pygame.time.get_ticks() - last_time
 
     if game_menu:  # En el menú principal
@@ -396,17 +390,17 @@ while True:
         portal.draw(menus.screen)
         main_menu.update(mouse_pos)
 
-        # Se restablece la vida del jugador
+        # Se reestablece la vida del jugador
         jugador.hp, player_hp = 50, 50
 
-        # Se vacían todas las sprites
+        # Se vacían todas las sprites.
         enemigos_list.empty()
         disparo_list_player.empty()
         disparo_list_en.empty()
         curaciones_list.empty()
         sprites.empty()
 
-        # Se reinicia el tiempo de Pygame a 0
+        # Se "reinicia" el tiempo de Pygame a 0
         last_time = pygame.time.get_ticks()
 
         # Se incluye al jugador
@@ -459,7 +453,7 @@ while True:
                     game_over = False
                     game_menu = True
 
-    elif game_playing:  # El juego se ejecuta
+    elif game_playing:  # El juego se ejecuta.
         screen.blit(fondo_actual, (0, 0))
 
         # Dibujar sprites
@@ -469,7 +463,7 @@ while True:
         jugador.update()
 
         # Generación Boss
-        if jugador.score >= 17:
+        if jugador.score >= 18:
             enemigos_list.add(boss)
             for ene in nivel:
                 if ene.tiempo_aparicion >= current_time:
@@ -479,7 +473,7 @@ while True:
                     ene.spawn(enemigos_list, jugador)
             boss.spawn(enemigos_list, jugador)
 
-        elif jugador.score < 20:
+        elif jugador.score < 18:
             for ene in nivel:
                 if current_time >= ene.tiempo_aparicion:
                     ene.spawn(enemigos_list, jugador)
@@ -491,27 +485,29 @@ while True:
         # Actualizar curaciones
         curaciones_list.update(jugador)
 
-        # Dibujar vida
+        # dibujar vida
         dibujar_vida(jugador, screen, 10, 40)
 
-        if jugador.hp <= 0:
+        if jugador.hp == 0:
             game_over = True
             game_playing = False
 
         if boss.hp <= 0:
             if not victory_screen_displayed:
                 victory_screen_displayed = True
-                victory_start_time = pygame.time.get_ticks()
+                victory_time = current_time
 
-        # Mostrar pantalla de victoria
+            # Mostrar pantalla de victoria
         if victory_screen_displayed:
             screen.fill((0, 0, 0))  # Rellenar la pantalla con negro o el color que prefieras
-            victory_text = game_over_font.render("¡Ganaste!", True, (255, 255, 255))
-            screen.blit(victory_text, (width // 2 - victory_text.get_width() // 2, height // 2 - victory_text.get_height() // 2))
+            victory_text = Variables.game_won.render("¡Ganaste!", True, (255, 255, 255))
+            screen.blit(victory_text,
+                        (width // 2 - victory_text.get_width() // 2, height // 2 - victory_text.get_height() // 2))
 
             # Esperar 5 segundos antes de cerrar el juego
-            if pygame.time.get_ticks() - victory_start_time >= 2000:
+            if current_time - victory_time >= 2000:
                 pygame.quit()
+                sys.exit()
 
         # Controles y eventos
         for event in pygame.event.get():
